@@ -3,6 +3,9 @@ const http = require('http')
 const { parse } = require('node-html-parser')
 require('log-timestamp')
 
+let goodEmails = 0
+const maxGoodEmails = 5
+
 console.log('Starting dsl-checker')
 
 const nodemailer = require('nodemailer')
@@ -47,7 +50,7 @@ const getExchangeDetails = (cb) => {
   req.end()
 }
 
-schedule.scheduleJob('*/5 * * * *', () => {
+schedule.scheduleJob('*/1 * * * *', () => {
   console.log('Checking exchange details...')
   getExchangeDetails((data) => {
     const root = parse(data, {
@@ -61,6 +64,7 @@ schedule.scheduleJob('*/5 * * * *', () => {
     const mailOptions = {
       from: process.env.DC_SENDEREMAIL
     }
+    console.log(`Emails sent to main recipient: ${goodEmails}`)
     if (fttcA === 'Waiting list' && fttcB === 'Waiting list') {
       mailOptions.to = process.env.DC_SENDEREMAIL
       mailOptions.subject = 'No Fibre Available'
@@ -69,13 +73,18 @@ schedule.scheduleJob('*/5 * * * *', () => {
       mailOptions.to = process.env.DC_RECEIVEEMAIL
       mailOptions.subject = '!!!!!FTTC !== Waiting list!!!!!'
       mailOptions.text = `FTTC A: ${fttcA} \\n FTTC B: ${fttcB}`
+      goodEmails = goodEmails + 1
     }
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.log(error)
-      } else {
-        console.log('Email sent: ' + info.response)
-      }
-    })
+    if (goodEmails <= maxGoodEmails) {
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.log(error)
+        } else {
+          console.log('Email sent: ' + info.response)
+        }
+      })
+    } else {
+      console.log(`${maxGoodEmails} emails sent to recipient, no email to send, continue to run and log results only until manual reset`)
+    }
   })
 })
