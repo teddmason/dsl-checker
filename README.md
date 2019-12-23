@@ -1,4 +1,4 @@
-#DSL-CHECKER
+# DSL-CHECKER
 
 This is a small node application that schedules a hit on the bt dsl check website to check a telephone number's fibre availability at the cabinet.
 
@@ -11,12 +11,12 @@ Set up a free tier EC2 instance in AWS and clone this repo
 Set the environment vars:
 
 ENV VARS:
-
-# FIBRE CHECKER
+```
 export DC_PHONE=
 export DC_SENDEREMAIL=
 export DC_SENDERPASSWORD=
 export DC_RECEIVEEMAIL=
+```
 
 Then use pm2 to run headless.
 
